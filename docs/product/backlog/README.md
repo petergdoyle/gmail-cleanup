@@ -26,7 +26,7 @@ headings, and stories are rows in a six-column table.
 
 | Epic | Title | Description | Status |
 |------|-------|-------------|--------|
-| [E1](./E1-first-epic.md) | First Epic | The first body of work — rename and fill in | Backlog |
+| [E1](./E1-first-epic.md) | Delete Old Gmail Messages | CLI + Web UI to safely delete old messages from Gmail inbox/archive by age, with dry-run, confirmation, and credential management | Backlog |
 
 ## Logs
 
