@@ -1,0 +1,44 @@
+[project]
+name = "gmail-cleanup"
+version = "0.1.0"
+description = "a utility to clear out old gmail items"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "click>=8.1",
+    "fastapi>=0.104",
+    "uvicorn>=0.24",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "ruff>=0.1.8",
+    "httpx2>=2.16",
+]
+
+[project.scripts]
+gmail = "gmail_cleanup.gmail.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/gmail_cleanup"]
+artifacts = [
+    "src/gmail_cleanup/ui/web/**/*",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--import-mode=importlib"]
+
+[tool.ruff]
+src = ["src", "tests"]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["B008"]

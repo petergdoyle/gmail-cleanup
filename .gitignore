@@ -1,0 +1,34 @@
+# Python / uv
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Secrets / environment
+.env
+# markdown-tools: markdown-to-*.toml (publish settings) and the .md2conf/ +
+# .md2jira/ state folders are COMMITTED (drift detection) — do NOT ignore them.
+# Only .env (the API keys) stays out of git. `raven check` enforces this.
+
+# Generated UI build output (utility-gui: web-src/ builds into src/<pkg>/ui/web/)
+src/*/web/
+src/*/ui/web/
+web-src/node_modules/
+# Next.js (application web tier) build output and generated types
+web-src/.next/
+web-src/next-env.d.ts
+web-src/*.tsbuildinfo
+
+# Application runtime (managed dev lifecycle: logs + local sqlite DB)
+.run/
+
+# Application deploy: real per-env config is secret; only the example is tracked
+deploy/config.*.env
+!deploy/config.example.env
+
+# OS
+.DS_Store

@@ -1,0 +1,19 @@
+{
+  "archetype": "utility-gui",
+  "archetype_flags": {
+    "web": "vite",
+    "web_ui": true
+  },
+  "created": "2026-11-19",
+  "docs_ai_template": "afce0836ecc0",
+  "manifest_version": 3,
+  "note": "Provenance written by `raven new`, as scaffolded. Not live state.",
+  "raven": "0.1.0",
+  "spec": {
+    "base_port": 8100,
+    "dist_name": "gmail-cleanup",
+    "package_name": "gmail_cleanup",
+    "tools": [],
+    "umbrella": "gmail"
+  }
+}

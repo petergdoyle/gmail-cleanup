@@ -1,0 +1,28 @@
+# gmail-cleanup — CI pipeline
+# Self-provisioning: the runner may be an unprivileged shell runner that ignores
+# `image:`, so jobs install their own toolchain (uv via its standalone installer).
+stages:
+  - lint
+  - test
+
+variables:
+  UV_CACHE_DIR: "$CI_PROJECT_DIR/.uv-cache"
+
+.uv-setup: &uv-setup
+  - command -v uv >/dev/null 2>&1 || { curl -LsSf https://astral.sh/uv/install.sh | sh; }
+  - export PATH="$HOME/.local/bin:$PATH"
+  - uv --version
+
+lint:
+  stage: lint
+  before_script: *uv-setup
+  script:
+    - uv sync --extra dev
+    - uv run ruff check src tests
+
+test:
+  stage: test
+  before_script: *uv-setup
+  script:
+    - uv sync --extra dev
+    - uv run pytest -q

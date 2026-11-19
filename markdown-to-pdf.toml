@@ -1,0 +1,10 @@
+# md2pdf run settings. Commit this file. md2pdf has NO secrets, so there is no .env
+# for it - this TOML is its only configuration.
+# Precedence (highest wins): CLI flag > markdown-to-pdf.toml > built-in default.
+
+# Default source: a Markdown file or a directory of them. A bare `md2pdf` converts it.
+source = "docs"
+# Output directory for the generated PDFs (generated - add it to .gitignore).
+output = "output"
+# Max directory recursion depth. 0 (or omit) = unlimited.
+depth = 0

@@ -1,0 +1,30 @@
+{
+  "files": {
+    "00-working-relationship.md": "c8011d83de7ac91004dbb98a9580c014c509ad3a6b968a2ebee8aa7173327545",
+    "README.md": "7b22c8923bb069b4280b41f2520699c0e839f09d198efcb333a33e7792aa8368",
+    "decisions/README.md": "3062b8a47f37debfce92f6fb70ec489a9c1a141ca5071164665e7fad2a6137c6",
+    "directives/README.md": "2ede592a1c009c83add12ac0638d6d7d84662ce865394f0f6b78ed5ab0804ea9",
+    "directives/connectivity.md": "7efd1021764e720a273bbdd8b10be32871553edcd8c6b99156ac16b012b069fb",
+    "directives/deep-scan.md": "06dbe82f3cfd0c0e2b4bc92205e6a58cc2a94190e0413d50ab8d2dbd59701681",
+    "directives/docs-presence-and-structure.md": "1c7fd9b1d653f8cca8b63ff83a505722066070af85a3cf40824d7e51a577d218",
+    "directives/git-host-and-reviews.md": "68771cff8011f03285ba7824f54f5bbf2c8010cdf99a8486092bf523ebfc5b66",
+    "directives/publishing-config-and-state.md": "ebafd3a74fb284b032f62729ec975d2db935174ba467298686291eaadbee081e",
+    "directives/secrets-and-env.md": "3312f1f97112d8ed2cf6536340b9eed634c799c0e73418af20a7cacd3ba122d0",
+    "directives/ui-mockup-format.md": "772d53a3c098987abe43c47cbd812817babf9dc6e6fea5c17a2724bda6a9fa77",
+    "directives/use-raven.md": "641de6e9399e54ec5e01e197d33cd19357e8519b1414c7e4cef19032a8da8471",
+    "workflow/01-docs-structure.md": "0f57123f635f159b316d108a54f32bb7be88438d0dd6427112196fbfcc9a944c",
+    "workflow/02-effort-model.md": "d246a1a5e31223f2f9889df346ac7fedd6864da14da9366aa2261d2f2a50b9f1",
+    "workflow/03-backlog-and-logs.md": "2f0bad26afa31905f2b5ab12158a90a2354f4def0b3eb17156c12901ae263d73",
+    "workflow/04-scaffolding-and-main.md": "ed9bfa0e0cdf6852680365af1b7ea28c78382a9036c91fb395170187c143e306",
+    "workflow/05-review-and-publish.md": "f8a594b99311015dce43b8ed2d0855641fd000f537820b1b8868b8d3396d0897",
+    "workflow/06-ui-mockups.md": "853e2fa3db887da1d191f92ecdc1ff382f7c23aaf06f8183a6577b58fcab623c",
+    "workflow/07-weekly-updates.md": "13e4ac31ae4f58a0a33794399d9d07b64f6b363f6c50fe77d44a3cf8298d27e7",
+    "workflow/08-deep-scan.md": "961419f2c406fbbb3972f260b88fac3edb1dac61c389d2b5dd0ff460bd460dfe",
+    "workflow/README.md": "cfc9dfdb0449b1973abbac5d86656eeda3ee4b1fffad7e99eb7f18035c4dc1b7"
+  },
+  "note": "Written by raven (`raven new`, `raven docs-ai update`). The hash of each docs/ai file as last synced from raven's template, so raven can tell a template change from a local edit. Commit it with docs/ai.",
+  "raven": "0.1.0",
+  "record_version": 1,
+  "synced": "2026-11-19",
+  "template": "afce0836ecc0b78525b290d61c543a4b79a3cf1ab91850156aeeeb93359d5fa8"
+}

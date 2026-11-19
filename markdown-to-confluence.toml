@@ -1,0 +1,35 @@
+# gmail-cleanup docs -> Confluence settings (md2conf). Commit this file.
+# Secrets (CONFLUENCE_* token/URL/email/space) live in .env, NEVER here.
+# State is kept in .md2conf/ - commit that too (it is what detects drift).
+
+# Mandatory automation label on every tool-managed page (scopes drift detection).
+automation_label = "gmail-cleanup-docs"
+# Extra labels applied to every published page.
+base_labels = ["gmail-cleanup"]
+
+# The Confluence space to publish into. Not a secret - set it here (overrides
+# CONFLUENCE_SPACE_KEY in .env).
+# space_key = "SPACE"
+
+# Optional: publish into a specific Confluence FOLDER instead of the space default
+# location. TOP-LEVEL key - keep it above every [table].
+# root_folder_id = "1234567890"
+
+# Optional: in a SHARED space, append "(tag)" to every published folder/page title so
+# projects never collide (titles are unique per space). "auto" derives a tag from
+# root_folder_id. TOP-LEVEL key.
+# title_tag = "auto"
+
+# The docs/ subfolders to publish, and the Confluence section page each becomes.
+# ONLY these publish - anything else under docs/ is never sent. Add a line when you
+# add a new top-level docs/ folder (help, architecture, product, stakeholders, operations).
+[sections]
+architecture = "Architecture"
+product = "Product"
+operations = "Operations"
+
+[behavior]
+create_section_pages = true
+add_generated_notice = true
+# stamp_ids = false
+# render_mermaid = true

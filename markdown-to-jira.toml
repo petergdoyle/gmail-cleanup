@@ -1,0 +1,43 @@
+# gmail-cleanup backlog -> Jira settings (md2jira). Commit this file.
+# Secrets (JIRA_* token/URL/email/key) live in .env, NEVER here.
+# State is kept in .md2jira/ - commit that too (it is what detects drift).
+
+# Mandatory automation tag applied to 100% of tool-managed issues.
+automation_tag = "gmail-cleanup-sync"
+# A short project tag threaded as a label on every issue.
+project_label = "gmail-cleanup"
+# Extra labels applied to every issue.
+base_labels = ["gmail-cleanup"]
+
+# Controlled classification vocabulary - declared Tags-column values must be in
+# this set (out-of-vocab tags are reported and dropped, not sent to Jira).
+tag_vocabulary = [
+    "ai-assisted", "human-authored", "test-only", "spike",
+    "tech-debt", "nfr", "pilot-blocker", "infra",
+]
+
+# Where the backlog lives, relative to the repo root.
+requirements_dir = "docs/product/backlog"
+
+[tags]
+structural = true    # epic:E#, feature:F#.#
+priority = true      # priority:high
+status = false       # status:done
+
+[behavior]
+create_epics = true
+sync_status = false
+# stamp_keys = false
+
+# Priority column value -> Jira priority name (identity by default).
+[priority_map]
+High = "High"
+Medium = "Medium"
+Low = "Low"
+
+# Status column value -> Jira status name (used only when sync_status = true).
+[status_map]
+Done = "Done"
+Resolved = "Done"
+Active = "In Progress"
+Backlog = "To Do"
