@@ -3,10 +3,9 @@
 ## The problem
 
 Gmail inboxes accumulate thousands of old messages that clutter and slow down
-search. Manual deletion is tedious; Gmail's built-in filters don't offer
-age-based bulk deletion. Users need a **safe, scriptable tool** to delete old
-messages in bulk by mailbox (inbox, archive) and age, with confirmation and
-recovery guarantees.
+search. Manual cleanup can be tedious. Users need a **safe, scriptable tool**
+to move old messages to Trash by mailbox (inbox, archive) and age, with
+preview, confirmation, and a clear recovery path.
 
 ## The approach
 
@@ -18,20 +17,24 @@ recovery guarantees.
 It connects to Gmail via the Gmail API, requires OAuth setup, and allows users to:
 
 1. **Configure Gmail credentials** in `.env` or override via the web UI admin panel
-2. **Preview deletions** in dry-run mode (count, criteria, confirmation)
-3. **Delete messages** by mailbox (inbox, archive) and age (e.g., 6 months)
-4. **Test the connection** from CLI or web UI before running deletions
-5. **Recover** via Gmail's trash/recovery (not undeleted by this tool, but
-   preservable)
+2. **Connect and select Google accounts**, and navigate through each account's mailboxes
+3. **Preview deletions** in dry-run mode (account, count, criteria, confirmation)
+4. **Delete messages** by account, mailbox (inbox, archive), and age
+5. **Test the connection** from CLI or web UI before running deletions
+6. **Recover** messages through Gmail's Trash, not through this tool
 
-Default behavior: delete messages **6 months+ old** from inbox, **3 months+ old**
-from archive. Both mailbox selections and age thresholds are configurable.
+By default both mailboxes are selected: inbox messages older than **6 months**
+and archived messages older than **3 months**. Both selections and thresholds
+are configurable. Archive means received mail outside Inbox, Sent, Drafts, Spam,
+and Trash; it is not a separate Gmail folder. Each account is selected and
+previewed separately, and the affected account is identified before any action.
 
 ## What it is not
 
 - **Not a full Gmail client.** It does one thing: delete old messages safely.
-- **Not permanent destruction.** Deleted messages go to Gmail's trash for 30 days
-  (Gmail's native recovery window).
+- **Not immediate permanent destruction.** Messages go to Gmail's Trash, where
+  they can be recovered in Gmail until Gmail permanently deletes them (normally
+  after 30 days). Retention may be affected by account policies.
 - **Not a sync tool.** It doesn't replicate, back up, or export; it only deletes.
-- **Not a folder manager.** It works on mailbox labels (inbox, archive), not custom
-  labels.
+- **Not a folder manager.** It selects messages by Gmail labels, not custom
+  folder management.

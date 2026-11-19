@@ -1,7 +1,7 @@
 # gmail-cleanup — developer Makefile (utility-gui)
 # Dev convenience over a uv-first fallback chain. Not required at runtime.
 .DEFAULT_GOAL := help
-.PHONY: help setup install uninstall web ui up down restart dev-status lab kernel nb-test nb-strip nb-strip-install test lint lint-fix clean
+.PHONY: help setup install uninstall web ui dev-up dev-down dev-status test lint lint-fix clean
 
 UV := uv
 
@@ -15,13 +15,16 @@ help: ## Show this help
 	@echo "  install      Install the command for your user (uv tool)"
 	@echo "  web          Build the React UI into the package"
 	@echo "  ui           Build-if-needed + serve the web UI (127.0.0.1)"
+	@echo "  dev-up       Start the local web UI in the background"
+	@echo "  dev-down     Stop the managed local web UI"
+	@echo "  dev-status   Check the managed local web UI"
 
 setup: ## Create venv + editable install with dev deps
 	@command -v $(UV) > /dev/null 2>&1 || { echo "uv required: https://docs.astral.sh/uv/"; exit 1; }
 	@$(UV) sync --extra dev
 	@echo "Done. Try: uv run gmail --help"
 
-install: ## Install the command for the current user (~/.local/bin via uv tool)
+install: web ## Build the UI and install the command for the current user
 	@$(UV) tool install --force --reinstall --no-cache .
 
 uninstall: ## Remove the installed command
@@ -34,6 +37,15 @@ web: ## Build the React UI into the package (src/*/ui/web)
 
 ui: ## Build-if-needed and serve the web UI (127.0.0.1; Ctrl-C to stop)
 	@$(UV) run gmail ui
+
+dev-up: web ## Build and start the local development UI
+	@$(UV) run python -m gmail_cleanup.ui.dev up
+
+dev-down: ## Stop only the managed development UI
+	@$(UV) run python -m gmail_cleanup.ui.dev down
+
+dev-status: ## Check the managed development UI
+	@$(UV) run python -m gmail_cleanup.ui.dev status
 
 test: ## Run tests
 	@if [ -x .venv/bin/python ]; then .venv/bin/python -m pytest -q; \
