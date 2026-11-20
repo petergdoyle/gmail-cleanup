@@ -128,6 +128,27 @@ def test_google_oauth_state_and_session_are_required(application, monkeypatch):
     assert c.get("/oauth/google/callback?state=state&code=x").status_code == 400
 
 
+@pytest.mark.parametrize("client_config", [None, "missing", "bad-json", "desktop", "invalid-web"])
+def test_google_web_client_configuration_errors(application, monkeypatch, tmp_path, client_config):
+    app, _ = application
+    path = tmp_path / "client.json"
+    if client_config == "bad-json":
+        path.write_text("invalid json", encoding="utf-8")
+    elif client_config == "desktop":
+        path.write_text('{"installed": {}}', encoding="utf-8")
+    elif client_config == "invalid-web":
+        path.write_text('{"web": {}}', encoding="utf-8")
+    monkeypatch.setattr(
+        server.web_oauth, "setting", lambda name: str(path) if client_config else None
+    )
+    c = client(app)
+    headers = login(c)
+    response = c.post("/api/accounts/connect", headers=headers)
+    assert response.status_code == 400
+    assert response.json()["code"] == "google_web_client_configuration"
+    assert str(path) not in response.text
+
+
 def test_preview_expiration(application, monkeypatch):
     app, store = application
     user = Identity("local-development", "alice", "alice")

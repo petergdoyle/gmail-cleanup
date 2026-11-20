@@ -17,9 +17,14 @@ and a 1200 × 980 canvas. Message counts and paths are illustrative.
 | Admin and connection | [SVG](./03-admin.svg) | [PNG](./03-admin.png) |
 | Application sign-in | [SVG](./04-sign-in.svg) | [PNG](./04-sign-in.png) |
 | Per-user Settings | [SVG](./05-settings.svg) | [PNG](./05-settings.png) |
+| Revised Settings and setup guidance | [SVG](./06-settings-setup.svg) | [PNG](./06-settings-setup.png) |
+| Help & Docs | [SVG](./07-help-docs.svg) | [PNG](./07-help-docs.png) |
 
 The Settings proposal and revised local development sign-in mockup were approved.
 Both separate application login from connecting Gmail. Authentik is deferred.
+The revised Settings and Help & Docs proposals were approved on 2026-11-20,
+with the identity label shortened to "Signed in". They show a missing-client
+example, not a live system state.
 
 ## Convention
 

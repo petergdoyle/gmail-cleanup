@@ -199,6 +199,11 @@ def create_app(provider: AuthProvider | None = None, store: Store | None = None)
                     "redirect": redirect, "created": time.monotonic(),
                 }
             return {"url": url}
+        except web_oauth.WebOAuthConfigurationError as exc:
+            return JSONResponse(
+                status_code=400,
+                content={"detail": str(exc), "code": "google_web_client_configuration"},
+            )
         except errors as exc:
             raise fail(exc) from exc
 
