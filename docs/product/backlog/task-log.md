@@ -8,6 +8,7 @@ Scoped work, newest first. The initial scaffold predates the structured log.
 
 | ID | Summary | Area | Implements | Priority | Status | Created |
 |----|---------|------|------------|----------|--------|---------|
+| T04 | Add GitHub pull request checks | CI | — | medium | under review | 2026-11-20 |
 | T03 | Design and implement authenticated per-user settings | Identity and settings | [E2](./E2-user-settings.md) | high | under review | 2026-11-19 |
 | T02 | Plan future per-user settings, label selection and deployment discussion | Planning | [E2](./E2-user-settings.md), [E3](./E3-custom-label-selection.md), [D04](./design-decision-log.md) | medium | under review | 2026-11-19 |
 | T01 | Implement safe Gmail cleanup via CLI and web UI | Cleanup | [E1](./E1-first-epic.md), F1.1–F1.4 | high | in progress | 2026-11-19 |
@@ -17,6 +18,17 @@ Scoped work, newest first. The initial scaffold predates the structured log.
 No structured tasks completed yet.
 
 ## Details
+
+### T04 — GitHub pull request checks — UNDER REVIEW
+
+- **Scope:** Run Python lint, tests and a web build for GitHub pull requests;
+  no deployment or Google credentials are involved.
+- **Raven candidate:** CI pipeline setup has no raven command yet; this workflow
+  was added manually with the user's approval.
+- **Verified:** Workflow YAML parses and declares the pull request trigger;
+  locked Python lint and tests (38 passed), plus the web build, passed locally.
+- **Verified on GitHub:** The first pull request run passed all three jobs.
+  Action versions were updated afterward to address Node runtime warnings.
 
 ### T03 — Authenticated per-user settings — UNDER REVIEW
 
