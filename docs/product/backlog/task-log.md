@@ -27,7 +27,8 @@ No structured tasks completed yet.
   was added manually with the user's approval.
 - **Verified:** Workflow YAML parses and declares the pull request trigger;
   locked Python lint and tests (38 passed), plus the web build, passed locally.
-- **Not verified:** GitHub-hosted execution remains pending a workflow run.
+- **Verified on GitHub:** The first pull request run passed all three jobs.
+  Action versions were updated afterward to address Node runtime warnings.
 
 ### T03 — Authenticated per-user settings — UNDER REVIEW
 
