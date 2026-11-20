@@ -141,6 +141,9 @@ uv run pytest -q        # run the tests
 uv run ruff check src tests
 ```
 
+Pull requests run GitHub Actions checks for Python lint, Python tests and the
+web build. These checks do not require Google credentials or modify Gmail.
+
 ## Docs, planning & stakeholder updates
 The `docs/` tree and the backlog are Markdown in git; **markdown-tools**
 ([`md2conf`](https://repo.dpsk12.org/amazon-web-services/dps-productivity/markdown-tools),
