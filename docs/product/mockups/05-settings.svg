@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="980" viewBox="0 0 1200 980">
+  <rect width="1200" height="980" fill="#f3f5f9"/>
+  <rect width="220" height="980" fill="#172238"/>
+  <g font-family="Arial, sans-serif">
+    <text x="28" y="52" font-size="21" font-weight="bold" fill="#fff">gmail-cleanup</text>
+    <text x="30" y="123" font-size="16" fill="#cbd5e1">Cleanup</text>
+    <rect x="14" y="145" width="192" height="44" rx="8" fill="#294461"/>
+    <text x="30" y="173" font-size="16" fill="#fff">Settings</text>
+    <line x1="22" y1="780" x2="198" y2="780" stroke="#475569"/>
+    <text x="30" y="813" font-size="15" fill="#cbd5e1">Help &amp; Docs</text>
+    <circle cx="46" cy="855" r="17" fill="#3b5f89"/>
+    <text x="46" y="860" text-anchor="middle" font-size="12" font-weight="bold" fill="#fff">JD</text>
+    <text x="74" y="851" font-size="14" font-weight="bold" fill="#fff">Jordan Example</text>
+    <text x="74" y="871" font-size="12" fill="#cbd5e1">Signed in</text>
+    <text x="30" y="923" font-size="14" fill="#cbd5e1">Sign out</text>
+    <text x="260" y="65" font-size="30" font-weight="bold" fill="#172238">Settings</text>
+    <text x="260" y="96" font-size="15" fill="#526174">Your connected Gmail accounts and preferences are private to your user.</text>
+    <rect x="260" y="125" width="880" height="283" rx="12" fill="#fff" stroke="#d7dee8"/>
+    <text x="292" y="166" font-size="20" font-weight="bold" fill="#172238">Gmail accounts</text>
+    <text x="292" y="197" font-size="15" fill="#526174">Connect each Google account you want to clean up.</text>
+    <text x="292" y="225" font-size="14" fill="#526174">You will choose an account and grant Gmail access on Google.</text>
+    <rect x="292" y="247" width="215" height="43" rx="7" fill="#2563eb"/>
+    <text x="308" y="275" font-size="15" font-weight="bold" fill="#fff">+ Connect Google account</text>
+    <line x1="292" y1="309" x2="1108" y2="309" stroke="#e1e7ef"/>
+    <text x="292" y="340" font-size="15" fill="#172238">account-one@example.com</text>
+    <text x="721" y="340" font-size="14" fill="#13733b">Connected</text>
+    <text x="877" y="340" font-size="14" fill="#2563eb">Test connection</text>
+    <text x="1031" y="340" font-size="14" fill="#b42318">Remove</text>
+    <text x="292" y="378" font-size="13" fill="#526174">Example account. Your app operator configures Google OAuth; you never paste a token.</text>
+    <rect x="260" y="430" width="880" height="195" rx="12" fill="#fff" stroke="#d7dee8"/>
+    <text x="292" y="471" font-size="20" font-weight="bold" fill="#172238">Cleanup preferences</text>
+    <text x="292" y="503" font-size="15" fill="#526174">Saved separately for each Google account. Review and preview before cleanup.</text>
+    <rect x="292" y="525" width="345" height="42" rx="6" fill="#fff" stroke="#b8c5d5"/>
+    <text x="306" y="552" font-size="15" fill="#172238">account-one@example.com ▾</text>
+    <text x="292" y="597" font-size="14" fill="#526174">Inbox: 6 months   ·   Archive: 3 months</text>
+    <text x="965" y="597" font-size="14" fill="#2563eb">Edit preferences</text>
+    <rect x="260" y="648" width="880" height="170" rx="12" fill="#fff" stroke="#d7dee8"/>
+    <text x="292" y="690" font-size="20" font-weight="bold" fill="#172238">Appearance</text>
+    <text x="292" y="722" font-size="15" fill="#526174">Your theme is saved to your application account.</text>
+    <rect x="292" y="746" width="160" height="42" rx="6" fill="#eaf0ff" stroke="#2563eb"/>
+    <text x="346" y="773" font-size="15" font-weight="bold" fill="#2563eb">Light</text>
+    <rect x="464" y="746" width="160" height="42" rx="6" fill="#fff" stroke="#b8c5d5"/>
+    <text x="520" y="773" font-size="15" fill="#172238">Dark</text>
+    <text x="260" y="864" font-size="14" fill="#526174">Can't connect? Ask your operator to configure the shared Google OAuth client.</text>
+  </g>
+</svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="980" viewBox="0 0 1200 980">
+  <rect width="1200" height="980" fill="#f3f5f9"/>
+  <rect width="220" height="980" fill="#172238"/>
+  <g font-family="Arial, sans-serif">
+    <text x="28" y="52" font-size="21" font-weight="bold" fill="#fff">gmail-cleanup</text>
+    <text x="30" y="123" font-size="16" fill="#cbd5e1">Cleanup</text>
+    <rect x="14" y="145" width="192" height="44" rx="8" fill="#294461"/>
+    <text x="30" y="173" font-size="16" fill="#fff">Admin</text>
+    <text x="28" y="930" font-size="14" fill="#cbd5e1">Gmail: not tested</text>
+    <text x="260" y="70" font-size="30" font-weight="bold" fill="#172238">Admin</text>
+    <text x="260" y="103" font-size="16" fill="#526174">Connect accounts, configure Gmail access and verify connections.</text>
+    <rect x="260" y="135" width="880" height="180" rx="12" fill="#fff" stroke="#d7dee8"/>
+    <text x="292" y="175" font-size="20" font-weight="bold" fill="#172238">Google accounts</text>
+    <rect x="939" y="149" width="157" height="40" rx="6" fill="#2563eb"/>
+    <text x="955" y="175" font-size="15" font-weight="bold" fill="#fff">+ Add account</text>
+    <text x="292" y="218" font-size="15" fill="#172238">account-one@example.com</text>
+    <text x="760" y="218" font-size="14" fill="#526174">Selected</text>
+    <text x="292" y="259" font-size="15" fill="#172238">account-two@example.com</text>
+    <text x="760" y="259" font-size="14" fill="#526174">Available</text>
+    <text x="292" y="290" font-size="13" fill="#526174">Each account is authorized separately. Select an account in Cleanup.</text>
+    <g transform="translate(0 200)">
+    <rect x="260" y="135" width="880" height="575" rx="12" fill="#fff" stroke="#d7dee8"/>
+    <text x="292" y="177" font-size="20" font-weight="bold" fill="#172238">Gmail connection</text>
+    <text x="292" y="211" font-size="15" fill="#526174">Configure credentials in .env or override their location for this app.</text>
+    <text x="292" y="262" font-size="15" font-weight="bold" fill="#172238">OAuth client credentials path</text>
+    <rect x="292" y="278" width="654" height="42" rx="6" fill="#fff" stroke="#b8c5d5"/>
+    <text x="306" y="305" font-size="15" fill="#526174">Use configured .env value</text>
+    <rect x="960" y="278" width="136" height="42" rx="6" fill="#fff" stroke="#aab8ca"/>
+    <text x="982" y="305" font-size="15" fill="#172238">Use path</text>
+    <text x="292" y="345" font-size="14" fill="#526174">Path is local to the machine running gmail-cleanup.</text>
+    <text x="292" y="385" font-size="15" font-weight="bold" fill="#172238">Or override a credential value</text>
+    <rect x="292" y="399" width="654" height="42" rx="6" fill="#fff" stroke="#b8c5d5"/>
+    <text x="306" y="426" font-size="15" fill="#526174">Enter value (masked)</text>
+    <rect x="960" y="399" width="136" height="42" rx="6" fill="#fff" stroke="#aab8ca"/>
+    <text x="979" y="426" font-size="15" fill="#172238">Apply value</text>
+    <text x="292" y="469" font-size="14" fill="#526174">Values are masked and are not displayed again after applying.</text>
+    <line x1="292" y1="493" x2="1108" y2="493" stroke="#e1e7ef"/>
+    <text x="292" y="528" font-size="15" font-weight="bold" fill="#172238">Connection status</text>
+    <text x="292" y="559" font-size="15" fill="#526174">Selected account not tested. Browser authorization may be required.</text>
+    <rect x="292" y="587" width="168" height="44" rx="7" fill="#2563eb"/>
+    <text x="307" y="615" font-size="15" font-weight="bold" fill="#fff">Test connection</text>
+    <text x="292" y="671" font-size="14" fill="#526174">Setup instructions and errors appear here.</text>
+    </g>
+  </g>
+</svg>

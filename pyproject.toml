@@ -6,7 +6,12 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.1",
+    "cryptography>=42",
     "fastapi>=0.104",
+    "google-api-python-client>=2.0",
+    "google-auth-oauthlib>=1.2",
+    "keyring>=25",
+    "python-dotenv>=1.0",
     "uvicorn>=0.24",
 ]
 
@@ -26,6 +31,11 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/gmail_cleanup"]
+artifacts = [
+    "src/gmail_cleanup/ui/web/**/*",
+]
+
+[tool.hatch.build.targets.sdist]
 artifacts = [
     "src/gmail_cleanup/ui/web/**/*",
 ]
