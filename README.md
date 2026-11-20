@@ -49,6 +49,7 @@ Authentik and shared multi-user deployment are not implemented.
    then open **Settings → Connect Google account**. Authorize each account
    separately on Google. Select an account on the Cleanup screen and use
    **Settings → Test selected account** to verify its connection.
+   The sidebar's **Help & Docs** also provides setup and recovery guidance.
 
 Each user identity has separate account and settings records in the ignored
 `.run/settings.sqlite` file in the launch directory. Google credentials are

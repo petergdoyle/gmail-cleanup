@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import Help from "./Help";
 import "./style.css";
 
 const initialSelection = () => ({
@@ -23,9 +24,21 @@ async function api(path, body) {
     const message = typeof result.detail === "string" ? result.detail : "Invalid request.";
     const error = new Error(message);
     error.status = response.status;
+    error.code = result.code;
     throw error;
   }
   return result;
+}
+
+function Icon({ name }) {
+  const paths = {
+    mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 7 9 6 9-6" /></>,
+    settings: <><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="3" /></>,
+    help: <><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 4 2c-1 .7-1.5 1.2-1.5 2.5M12 17h.01" /></>,
+    logout: <><path d="M10 4H5v16h5M14 8l4 4-4 4M8 12h10" /></>,
+  };
+  return <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+    strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{paths[name]}</svg>;
 }
 
 export default function App() {
@@ -44,6 +57,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [connection, setConnection] = useState({});
+  const [setupError, setSetupError] = useState(false);
   const selection = selections[account] || initialSelection();
 
   function clearUser() {
@@ -55,6 +69,7 @@ export default function App() {
     setPreview(null);
     setConfirming(false);
     setConnection({});
+    setSetupError(false);
     setTheme("light");
     setTab("cleanup");
     setPassword("");
@@ -139,8 +154,17 @@ export default function App() {
   }
 
   async function addAccount() {
-    const result = await api("accounts/connect", {});
-    window.location.assign(result.url);
+    setSetupError(false);
+    try {
+      const result = await api("accounts/connect", {});
+      window.location.assign(result.url);
+    } catch (err) {
+      if (err.code === "google_web_client_configuration") {
+        setSetupError(true);
+      } else {
+        throw err;
+      }
+    }
   }
 
   async function savePreferences() {
@@ -154,10 +178,18 @@ export default function App() {
   }
 
   async function testConnection() {
-    setConnection((prev) => ({ ...prev, [account]: null }));
-    const result = await api("test-connection", { account });
-    setConnection((prev) => ({ ...prev, [account]: result }));
-    setMessage(`Gmail connection succeeded for ${account}.`);
+    const testedAccount = account;
+    setConnection((prev) => ({ ...prev, [testedAccount]: null }));
+    try {
+      const result = await api("test-connection", { account: testedAccount });
+      setConnection((prev) => ({ ...prev, [testedAccount]: result }));
+      setMessage(`Gmail connection succeeded for ${testedAccount}.`);
+    } catch (err) {
+      if (err.status !== 401) {
+        setConnection((prev) => ({ ...prev, [testedAccount]: { status: "failed" } }));
+      }
+      throw err;
+    }
   }
 
   async function showPreview() {
@@ -207,17 +239,22 @@ export default function App() {
   return (
     <div className="layout">
       <aside>
-        <strong>gmail-cleanup</strong>
-        <nav>
-          <button className={tab === "cleanup" ? "active" : ""} onClick={() => setTab("cleanup")}>Cleanup</button>
-          <button className={tab === "settings" ? "active" : ""} onClick={() => setTab("settings")}>Settings</button>
+        <div className="brand"><span className="brand-icon"><Icon name="mail" /></span>
+          <div><strong>gmail-cleanup</strong><small>A calmer inbox</small></div></div>
+        <div className="nav-heading">Workspace</div>
+        <nav aria-label="Main navigation">
+          {[["cleanup", "mail", "Cleanup"], ["settings", "settings", "Settings"], ["help", "help", "Help & Docs"]].map(([key, icon, label]) =>
+            <button key={key} className={tab === key ? "active" : ""} aria-current={tab === key ? "page" : undefined}
+              onClick={() => { setTab(key); setError(""); setMessage(""); }}>
+              <Icon name={icon} />{label}
+            </button>)}
         </nav>
-        <div className="status">
-          <div>Gmail: {connection[account]?.status || "not tested"}</div>
-          <div className="signed-in">{user}</div>
+        <div className="sidebar-user">
+          <div className="identity"><span className="avatar" aria-hidden="true">{user.trim().slice(0, 2).toUpperCase()}</span>
+            <div><strong>{user}</strong><small>Signed in</small></div></div>
           <button onClick={() => run(async () => {
             await api("logout", {}); clearUser();
-          })}>Sign out</button>
+          })}><Icon name="logout" />Sign out</button>
         </div>
       </aside>
       <main>
@@ -276,16 +313,19 @@ export default function App() {
               <button className="danger" disabled={busy || preview.total === 0} onClick={() => setConfirming(true)}>Move to Trash…</button>
             </section>}
           </>
-        ) : (
+        ) : tab === "settings" ? (
           <>
             <h1>Settings</h1>
             <p>Your connected Gmail accounts and preferences are private to your user.</p>
             <section>
               <h2>Google accounts</h2>
-              <ul>{accounts.map((email) => <li key={email}>{email} {account === email ? "(selected)" : ""}</li>)}</ul>
               <button className="primary" disabled={busy} onClick={() => run(addAccount)}>+ Connect Google account</button>
-              <p>Choose an account and grant Gmail access on Google. Ask your operator to configure Google OAuth if needed.</p>
-              <button disabled={busy || !account} onClick={() => run(testConnection)}>Test selected account</button>
+              <p>Connect the accounts you want to clean up. App sign-in is separate.</p>
+              {accounts.length ? <label className="field">Selected Google account
+                <select value={account} onChange={(e) => changeAccount(e.target.value)} disabled={busy}>
+                  {accounts.map((email) => <option key={email}>{email}</option>)}
+                </select>
+              </label> : <p>No Google accounts connected yet.</p>}
               <button disabled={busy || !account} onClick={() => run(async () => {
                 await api("accounts/remove", { account });
                 setSelections((previous) => {
@@ -301,6 +341,24 @@ export default function App() {
                 const list = await api("accounts"); setAccounts(list.accounts);
                 changeAccount(list.accounts[0] || "");
               })}>Remove selected account</button>
+              {setupError && <div role="alert" className="setup-warning">
+                <strong>Google authorization needs setup</strong>
+                <p>The web OAuth client is missing or invalid. If you run this app locally,
+                  follow the setup guide; otherwise ask your app operator for help.</p>
+                <button className="text-button" onClick={() => { setTab("help"); setError(""); }}>
+                  Open Google setup guide →
+                </button>
+              </div>}
+            </section>
+            <section>
+              <h2>Connection test</h2>
+              {!account ? <p>No account selected. Connect a Google account to test its connection.</p> :
+                <p role="status">{account}: {connection[account]?.status === "connected" ?
+                  `Test succeeded${connection[account].tested_at ? ` at ${new Date(connection[account].tested_at).toLocaleString()}` : ""}.` :
+                  connection[account]?.status === "failed" ? "Test failed. Try again or reconnect the account." :
+                    "Not tested in this session."}</p>}
+              <button disabled={busy || !account} onClick={() => run(testConnection)}>Test selected account</button>
+              <p>A test result applies only to the selected account and current session.</p>
             </section>
             <section>
               <h2>Cleanup preferences</h2>
@@ -317,7 +375,7 @@ export default function App() {
               </button>)}
             </section>
           </>
-        )}
+        ) : <Help />}
         {busy && <p role="status">Working… Google authorization may open in your browser.</p>}
         {message && <p role="status" className="notice">{message}</p>}
         {error && <p role="alert" className="error">{error}</p>}

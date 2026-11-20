@@ -34,14 +34,18 @@ navigation; **View as** is out of scope.
 | S2.2.2 | As a user, I can save cleanup settings for each account | Given a connected account, when I save mailbox selections and age or date criteria, then reopening or signing back in restores that account's saved settings | High | ai-assisted | Backlog |
 | S2.2.3 | As a user, I can review saved settings before they affect mail | Given saved preferences, when I start cleanup, then the account and criteria are visible and preview and confirmation are still required | High | nfr | Backlog |
 | S2.2.4 | As a user, I can securely reauthorize an account | Given an expired or revoked authorization, when I reconnect the account, then I receive an actionable error and can authorize without exposing tokens | High | nfr | Backlog |
+| S2.2.5 | As a user, I can understand Google connection setup errors | Given the web OAuth client is missing or unreadable, when I try to connect an account, then I see an explanation and a link to the relevant setup guide without exposing secrets or a raw configuration-only error | High | ai-assisted | Active |
+| S2.2.6 | As a user, I can understand a selected account's connection test | Given no account or an account whose connection has not been tested, succeeded, or failed, when I view its status, then I see an unambiguous account-specific state and how to test it; switching accounts does not reuse another account's result | High | ai-assisted | Active |
 
 ### F2.3 — Appearance and Navigation
 
 | ID | Story | Acceptance Criteria | Priority | Tags | Status |
 | ---- | ----- | ------------------- | -------- | ---- | ------ |
 | S2.3.1 | As a user, I can choose a light or dark theme | Given Settings, when I choose light or dark, then the UI applies that theme and restores my choice in a later session | Medium | ai-assisted | Backlog |
-| S2.3.2 | As a user, I can find my settings and help | Given any primary app screen, when I navigate, then Settings and Help & Docs are available with my signed-in identity; no View as control is added | Medium | ai-assisted | Backlog |
-| S2.3.3 | As a user, I can open task-oriented help | Given Help & Docs, when I need guidance for connecting accounts, previewing cleanup or recovering mail, then I can reach the relevant user documentation | Medium | ai-assisted | Backlog |
+| S2.3.2 | As a user, I can find my settings and help | Given any primary app screen, when I navigate, then Settings and Help & Docs are available with my signed-in identity; no View as control is added | Medium | ai-assisted | Active |
+| S2.3.3 | As a user, I can open task-oriented help | Given Help & Docs, when I need guidance for connecting accounts, previewing cleanup or recovering mail, then I can reach the relevant user documentation | High | ai-assisted | Active |
+| S2.3.4 | As a user, I can navigate a polished sidebar | Given a signed-in session, when I use the navigation in light or dark theme, then clearly labeled icons, active state, identity and sign-out are legible, keyboard accessible and distinguish application identity from Gmail accounts | Medium | ai-assisted | Active |
+| S2.3.5 | As a local operator, I can configure Google authorization | Given no web OAuth client is configured, when I open setup help, then I can follow Google Cloud, consent/test user, web client, redirect URI, private JSON path and restart steps, and understand that desktop CLI credentials are separate | High | ai-assisted | Active |
 
 ### F2.4 — Deployment Design Prerequisite
 

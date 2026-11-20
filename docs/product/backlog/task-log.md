@@ -8,6 +8,7 @@ Scoped work, newest first. The initial scaffold predates the structured log.
 
 | ID | Summary | Area | Implements | Priority | Status | Created |
 |----|---------|------|------------|----------|--------|---------|
+| T05 | Clarify Gmail setup and refine navigation | UI and help | [E2](./E2-user-settings.md), S2.2.5–S2.2.6, S2.3.2–S2.3.5 | high | under review | 2026-11-20 |
 | T04 | Add GitHub pull request checks | CI | — | medium | under review | 2026-11-20 |
 | T03 | Design and implement authenticated per-user settings | Identity and settings | [E2](./E2-user-settings.md) | high | under review | 2026-11-19 |
 | T02 | Plan future per-user settings, label selection and deployment discussion | Planning | [E2](./E2-user-settings.md), [E3](./E3-custom-label-selection.md), [D04](./design-decision-log.md) | medium | under review | 2026-11-19 |
@@ -18,6 +19,24 @@ Scoped work, newest first. The initial scaffold predates the structured log.
 No structured tasks completed yet.
 
 ## Details
+
+### T05 — Gmail setup help and navigation — UNDER REVIEW
+
+- **Scope:** Refine the sidebar and signed-in identity, replace ambiguous Gmail
+  status wording with account-specific test states, and add task-oriented help
+  for Google OAuth setup, safe cleanup and recovery. Improve setup errors with
+  a direct path to the guide.
+- **Acceptance:** The guide distinguishes app sign-in, web OAuth and CLI desktop
+  OAuth; the UI never displays credentials; status does not imply a test was run.
+  Settings and help work in both themes and with keyboard navigation.
+- **Design:** [Settings and setup](../mockups/06-settings-setup.png) and
+  [Help & Docs](../mockups/07-help-docs.png) approved on 2026-11-20, with
+  the identity label shortened to "Signed in".
+- **Verified:** UI build and a browser exercise with mock accounts checked
+  missing-client guidance, dynamic callback URI, per-account test states,
+  failure, no-account state, dark theme and keyboard activation.
+- **Not verified:** Real Google authorization and Gmail cleanup; no real
+  account was accessed during verification.
 
 ### T04 — GitHub pull request checks — UNDER REVIEW
 
