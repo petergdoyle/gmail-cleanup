@@ -6,25 +6,35 @@ const initialSelection = () => ({
   archive: { selected: true, months: 3, before: "" },
 });
 
+let csrfToken = "";
+
 async function api(path, body) {
   const response = await fetch(`/api/${path}`, {
     method: body === undefined ? "GET" : "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Session-Token": window.__GMAIL_SESSION_TOKEN__,
+      "X-Bootstrap-Token": window.__GMAIL_BOOTSTRAP_TOKEN__,
+      "X-CSRF-Token": csrfToken,
     },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }),
   });
   const result = await response.json();
   if (!response.ok) {
     const message = typeof result.detail === "string" ? result.detail : "Invalid request.";
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = response.status;
+    throw error;
   }
   return result;
 }
 
 export default function App() {
   const [tab, setTab] = useState("cleanup");
+  const [user, setUser] = useState(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [theme, setTheme] = useState("light");
   const [accounts, setAccounts] = useState([]);
   const [account, setAccount] = useState("");
   const [selections, setSelections] = useState({});
@@ -33,11 +43,22 @@ export default function App() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
-  const [path, setPath] = useState("");
-  const [credentialValue, setCredentialValue] = useState("");
   const [connection, setConnection] = useState({});
-  const [config, setConfig] = useState({ source: "not checked", path: null });
   const selection = selections[account] || initialSelection();
+
+  function clearUser() {
+    csrfToken = "";
+    setUser(null);
+    setAccounts([]);
+    setSelections({});
+    setAccount("");
+    setPreview(null);
+    setConfirming(false);
+    setConnection({});
+    setTheme("light");
+    setTab("cleanup");
+    setPassword("");
+  }
 
   async function run(action) {
     setBusy(true);
@@ -46,20 +67,51 @@ export default function App() {
     try {
       await action();
     } catch (err) {
-      setError(err.message || "Operation failed.");
+      if (err.status === 401 && user) {
+        clearUser();
+        setError("Your session expired. Sign in again.");
+      } else {
+        setError(err.message || "Operation failed.");
+      }
     } finally {
       setBusy(false);
     }
   }
 
+  async function loadUser(result) {
+    csrfToken = result.csrf;
+    const [accountData, settings] = await Promise.all([api("accounts"), api("settings")]);
+    setUser(result.user);
+    setAccounts(accountData.accounts);
+    setAccount(accountData.accounts[0] || "");
+    setSelections(Object.fromEntries(
+      Object.entries(settings.accounts).filter(([, value]) => value !== null).map(
+        ([email, value]) => [email, Object.fromEntries(
+          Object.entries(value).map(([name, box]) => [name, { ...box, before: box.before || "" }])
+        )]
+      )
+    ));
+    setTheme(settings.theme);
+    const url = new URL(window.location.href);
+    const google = url.searchParams.get("google");
+    if (google) {
+      setTab("settings");
+      if (google === "connected") setMessage("Google account connected.");
+      if (google === "denied") setError("Google authorization was cancelled or denied.");
+      url.searchParams.delete("google");
+      window.history.replaceState(null, "", url);
+    }
+  }
+
   useEffect(() => {
-    run(async () => {
-      const result = await api("accounts");
-      setAccounts(result.accounts);
-      setAccount(result.accounts[0] || "");
-      setConfig(await api("config"));
-    });
+    api("session").then(loadUser).catch((err) => {
+      if (err.status !== 401) setError(err.message);
+    }).finally(() => setCheckingSession(false));
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+  }, [theme]);
 
   function changeAccount(next) {
     setAccount(next);
@@ -87,18 +139,18 @@ export default function App() {
   }
 
   async function addAccount() {
-    const result = await api("accounts", {});
-    const list = await api("accounts");
-    setAccounts(list.accounts);
-    changeAccount(result.account);
-    setMessage(`Authorized ${result.account}.`);
+    const result = await api("accounts/connect", {});
+    window.location.assign(result.url);
   }
 
-  async function applyConfig(config) {
-    await api("config", config);
-    setCredentialValue("");
-    setConfig(await api("config"));
-    setMessage("OAuth client override applied for this session.");
+  async function savePreferences() {
+    await api("settings/account", {
+      account,
+      ...Object.fromEntries(Object.entries(selection).map(([name, box]) => [
+        name, { ...box, months: Number(box.months), before: box.before || null },
+      ])),
+    });
+    setMessage(`Saved cleanup preferences for ${account}.`);
   }
 
   async function testConnection() {
@@ -130,15 +182,43 @@ export default function App() {
     setMessage(`Moved ${result.moved} messages to Gmail Trash for ${result.account} at ${result.completed_at}.`);
   }
 
+  if (checkingSession) return <p role="status">Checking session…</p>;
+  if (!user) return <div className="login-page"><section className="login-card">
+    <h1>Sign in to gmail-cleanup</h1>
+    <p>Local development sign-in. Gmail accounts are connected separately.</p>
+    <form onSubmit={(event) => {
+      event.preventDefault();
+      run(async () => {
+        const result = await api("login", { username, password });
+        setPassword("");
+        await loadUser(result);
+      });
+    }}>
+      <label className="field">Username<input autoComplete="username" value={username}
+        onChange={(e) => setUsername(e.target.value)} required /></label>
+      <label className="field">Password<input type="password" autoComplete="current-password"
+        value={password} onChange={(e) => setPassword(e.target.value)} required /></label>
+      <button className="primary" disabled={busy}>Sign in</button>
+    </form>
+    {error && <p role="alert" className="error">{error}</p>}
+    <p>Development only. Do not expose this service to a network.</p>
+  </section></div>;
+
   return (
     <div className="layout">
       <aside>
         <strong>gmail-cleanup</strong>
         <nav>
           <button className={tab === "cleanup" ? "active" : ""} onClick={() => setTab("cleanup")}>Cleanup</button>
-          <button className={tab === "admin" ? "active" : ""} onClick={() => setTab("admin")}>Admin</button>
+          <button className={tab === "settings" ? "active" : ""} onClick={() => setTab("settings")}>Settings</button>
         </nav>
-        <div className="status">Gmail: {connection[account]?.status || "not tested"}</div>
+        <div className="status">
+          <div>Gmail: {connection[account]?.status || "not tested"}</div>
+          <div className="signed-in">{user}</div>
+          <button onClick={() => run(async () => {
+            await api("logout", {}); clearUser();
+          })}>Sign out</button>
+        </div>
       </aside>
       <main>
         {tab === "cleanup" ? (
@@ -156,7 +236,7 @@ export default function App() {
                   <button onClick={() => moveAccount(-1)} disabled={busy || accounts.indexOf(account) <= 0}>← Previous</button>
                   <button onClick={() => moveAccount(1)} disabled={busy || accounts.indexOf(account) >= accounts.length - 1}>Next →</button>
                 </div>
-              ) : <p>No accounts connected. Open Admin to add an account.</p>}
+              ) : <p>No accounts connected. Open Settings to add an account.</p>}
             </section>
             <section>
               <h2>Mailboxes and age</h2>
@@ -182,6 +262,7 @@ export default function App() {
                 );
               })}
               <button className="primary" disabled={!account || busy} onClick={() => run(showPreview)}>Preview</button>
+              <button disabled={!account || busy} onClick={() => run(savePreferences)}>Save preferences</button>
               <span className="hint"> Preview does not change your mail.</span>
             </section>
             {preview && <section>
@@ -197,35 +278,43 @@ export default function App() {
           </>
         ) : (
           <>
-            <h1>Admin</h1>
-            <p>Connect accounts, configure Gmail access and verify connections.</p>
+            <h1>Settings</h1>
+            <p>Your connected Gmail accounts and preferences are private to your user.</p>
             <section>
               <h2>Google accounts</h2>
               <ul>{accounts.map((email) => <li key={email}>{email} {account === email ? "(selected)" : ""}</li>)}</ul>
-              <button className="primary" disabled={busy} onClick={() => run(addAccount)}>+ Add account</button>
-              <p>Each account is authorized separately using Google’s account chooser.</p>
+              <button className="primary" disabled={busy} onClick={() => run(addAccount)}>+ Connect Google account</button>
+              <p>Choose an account and grant Gmail access on Google. Ask your operator to configure Google OAuth if needed.</p>
+              <button disabled={busy || !account} onClick={() => run(testConnection)}>Test selected account</button>
+              <button disabled={busy || !account} onClick={() => run(async () => {
+                await api("accounts/remove", { account });
+                setSelections((previous) => {
+                  const next = { ...previous };
+                  delete next[account];
+                  return next;
+                });
+                setConnection((previous) => {
+                  const next = { ...previous };
+                  delete next[account];
+                  return next;
+                });
+                const list = await api("accounts"); setAccounts(list.accounts);
+                changeAccount(list.accounts[0] || "");
+              })}>Remove selected account</button>
             </section>
             <section>
-              <h2>Gmail connection</h2>
-              <p>Configure a Google OAuth desktop client in .env or override it for this session.</p>
-              <p>Current source: {config.source}{config.path ? ` (${config.path})` : ""}</p>
-              <label className="field">OAuth client credentials path
-                <input value={path} onChange={(e) => setPath(e.target.value)} placeholder="Use configured .env value" />
-              </label>
-              <button disabled={busy || !path} onClick={() => run(() => applyConfig({ path }))}>Use path</button>
-              <label className="field">Or override the OAuth client JSON value
-                <input type="password" value={credentialValue} onChange={(e) => setCredentialValue(e.target.value)} placeholder="Enter client JSON (masked)" />
-              </label>
-              <label className="field">Or choose a local OAuth client JSON file
-                <input type="file" accept=".json,application/json" onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) run(async () => setCredentialValue(await file.text()));
-                }} />
-              </label>
-              <button disabled={busy || !credentialValue} onClick={() => run(() => applyConfig({ value: credentialValue }))}>Apply value</button>
-              <p>Account: {account || "none selected"} · Status: {connection[account]?.status || "not tested"}
-                {connection[account]?.tested_at ? ` · Last tested: ${connection[account].tested_at}` : ""}</p>
-              <button className="primary" disabled={busy || !account} onClick={() => run(testConnection)}>Test connection</button>
+              <h2>Cleanup preferences</h2>
+              <p>Select an account and save its mailbox preferences on the Cleanup screen.</p>
+              <button onClick={() => setTab("cleanup")}>Edit preferences</button>
+            </section>
+            <section>
+              <h2>Appearance</h2>
+              <p>Your theme is saved to your application account.</p>
+              {["light", "dark"].map((choice) => <button key={choice}
+                className={theme === choice ? "primary" : ""}
+                onClick={() => run(async () => { await api("settings/theme", { theme: choice }); setTheme(choice); })}>
+                {choice === "light" ? "Light" : "Dark"}
+              </button>)}
             </section>
           </>
         )}

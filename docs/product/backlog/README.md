@@ -27,7 +27,7 @@ headings, and stories are rows in a six-column table.
 | Epic | Title | Description | Status |
 |------|-------|-------------|--------|
 | [E1](./E1-first-epic.md) | Delete Old Gmail Messages | CLI + Web UI to safely delete old messages from Gmail inbox/archive by age, with dry-run, confirmation, and credential management | Active |
-| [E2](./E2-user-settings.md) | Persistent Per-User Settings | Future user-specific accounts, cleanup settings, theme, identity and help; follows deployment design | Backlog |
+| [E2](./E2-user-settings.md) | Persistent Per-User Settings | User-specific accounts, cleanup settings, theme and pluggable login; shared deployment remains undecided | Active |
 | [E3](./E3-custom-label-selection.md) | Custom Gmail Label Selection | Discover and select custom labels per account alongside Inbox and Archive | Backlog |
 
 ## Logs

@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "click>=8.1",
+    "cryptography>=42",
     "fastapi>=0.104",
     "google-api-python-client>=2.0",
     "google-auth-oauthlib>=1.2",

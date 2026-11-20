@@ -15,7 +15,7 @@ help: ## Show this help
 	@echo "  install      Install the command for your user (uv tool)"
 	@echo "  web          Build the React UI into the package"
 	@echo "  ui           Build-if-needed + serve the web UI (127.0.0.1)"
-	@echo "  dev-up       Start the local web UI in the background"
+	@echo "  dev-up       Start the local web UI and open a browser"
 	@echo "  dev-down     Stop the managed local web UI"
 	@echo "  dev-status   Check the managed local web UI"
 
@@ -38,7 +38,7 @@ web: ## Build the React UI into the package (src/*/ui/web)
 ui: ## Build-if-needed and serve the web UI (127.0.0.1; Ctrl-C to stop)
 	@$(UV) run gmail ui
 
-dev-up: web ## Build and start the local development UI
+dev-up: web ## Build, start the local development UI, and open a browser
 	@$(UV) run python -m gmail_cleanup.ui.dev up
 
 dev-down: ## Stop only the managed development UI

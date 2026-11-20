@@ -14,6 +14,8 @@ Lightweight design decisions; see the [decision policy](../../ai/decisions/READM
 
 | ID | Question | Decision | Rationale | Decided on |
 |----|----------|----------|-----------|------------|
+| D08 | How should development sign-in relate to deployment identity? | Use a pluggable sign-in boundary with a local-only development provider; defer Authentik to deployment. | Enables local development now without pretending the development login is deployment-ready. | 2026-11-19 |
+| D07 | How should local development identify users and store their Gmail settings? | Authenticate app users with the existing Authentik via OIDC; isolate settings in SQLite and encrypt Google tokens with an operator-provided key. | Separates app login from Gmail authorization and supports persistent per-user settings. | 2026-11-19 |
 | D06 | How should custom Gmail labels relate to Archive cleanup? | Discover and offer custom labels separately in a future effort; Archive still includes eligible custom-labeled mail. | Keeps the established Archive behavior while letting users select additional labels explicitly. | 2026-11-19 |
 | D05 | How are account tokens stored for local use and scripting? | Use macOS Keychain for web-connected accounts; allow explicit environment or `.env` credential injection for CLI automation. | Supports interactive multi-account OAuth and scheduled CLI use without requiring plaintext token storage for the web UI. | 2026-11-19 |
 | D03 | How does cleanup handle multiple accounts? | Connect multiple Google accounts and select one account for each preview and cleanup. | Keeps account boundaries visible and supports navigating each account's mailboxes. | 2026-11-19 |
@@ -21,6 +23,41 @@ Lightweight design decisions; see the [decision policy](../../ai/decisions/READM
 | D01 | What messages are archived, and how are they recovered? | Select archived received mail and move eligible messages to Gmail Trash; recover in Gmail. | Limits accidental deletion and uses Gmail's native recovery path. | 2026-11-19 |
 
 ## Details
+
+### D08 — Pluggable application sign-in — DECIDED
+
+- **Area:** Application identity.
+- **Considerations:** Development needs a simple local login now; deployment
+  will use a separate authentication mechanism.
+- **Options:** Pluggable local provider now with Authentik later (chosen);
+  require Authentik during local development (superseded).
+- **Decision:** Implement an explicitly local-only provider with credentials
+  supplied outside source control, and design a boundary for future Authentik.
+- **Consequences:** Development credentials are not production security.
+  Authentik remains unimplemented and deployment decisions are deferred.
+- **Related:** [T03](./task-log.md), [E2](./E2-user-settings.md).
+  Supersedes D07's choice of Authentik for local development only.
+
+### D07 — Local application identity and per-user settings — DECIDED
+
+- **Area:** Identity and settings.
+- **Considerations:** The app has multiple users, each may connect multiple
+  Google accounts, and application login must be separate from Gmail authorization.
+  Settings must persist and account credentials must remain private.
+- **Options:** Existing Authentik via OIDC (chosen); local application accounts
+  (not chosen). SQLite with an operator-supplied encryption key for stored Gmail
+  tokens (chosen); the current global macOS Keychain account index (not suitable
+  for shared per-user isolation).
+- **Decision:** Use existing Authentik for local application login. Store
+  per-user settings and account ownership in SQLite and encrypt Google refresh
+  tokens with a key stored outside the database. The operator configures the
+  shared Google OAuth client; each user separately authorizes Gmail access.
+- **Consequences:** Development requires a configured Authentik OIDC client.
+  Key backup, rotation and the precise shared deployment architecture require
+  further design; existing CLI credential injection remains separate. This
+  supersedes D05 only for web account storage, not CLI usage.
+- **Related:** [T03](./task-log.md), [E2](./E2-user-settings.md), D04, D05.
+  See also [ADR 0002](../../architecture/decisions/0002-user-identity-and-settings.md).
 
 ### D06 — Custom labels and Archive — DECIDED
 

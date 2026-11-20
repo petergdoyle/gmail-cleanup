@@ -14,6 +14,7 @@ decisions that pin its direction. Numbered in reading order — start with the "
 | ADR | Decision | Status |
 |-----|----------|--------|
 | [0001](./decisions/0001-foundational-decision.md) | The foundational decision | Proposed |
+| [0002](./decisions/0002-user-identity-and-settings.md) | Application identity and per-user settings | Accepted for local development |
 
 See the [decision-capture policy](../ai/decisions/README.md) for ADR vs.
 lightweight-log guidance.

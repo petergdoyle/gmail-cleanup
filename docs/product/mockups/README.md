@@ -15,6 +15,11 @@ and a 1200 × 980 canvas. Message counts and paths are illustrative.
 | Cleanup and preview | [SVG](./01-cleanup.svg) | [PNG](./01-cleanup.png) |
 | Confirm move to Trash | [SVG](./02-confirm.svg) | [PNG](./02-confirm.png) |
 | Admin and connection | [SVG](./03-admin.svg) | [PNG](./03-admin.png) |
+| Application sign-in | [SVG](./04-sign-in.svg) | [PNG](./04-sign-in.png) |
+| Per-user Settings | [SVG](./05-settings.svg) | [PNG](./05-settings.png) |
+
+The Settings proposal and revised local development sign-in mockup were approved.
+Both separate application login from connecting Gmail. Authentik is deferred.
 
 ## Convention
 

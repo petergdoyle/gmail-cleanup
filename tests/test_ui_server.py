@@ -1,121 +1,232 @@
-"""The loopback UI backend: health is open, /api requires the token."""
+"""Verify local sessions, user isolation and account-bound cleanup."""
 
-from __future__ import annotations
+import json
+from unittest.mock import Mock
 
+import pytest
+from cryptography.fernet import Fernet
 from fastapi.testclient import TestClient
 
 from gmail_cleanup.gmail import service
 from gmail_cleanup.ui import server
+from gmail_cleanup.ui.auth import Identity, LocalDevelopmentProvider
+from gmail_cleanup.ui.store import Store
 
 
-def _client() -> TestClient:
-    return TestClient(server.create_app(), base_url="http://127.0.0.1")
+@pytest.fixture
+def application(tmp_path):
+    store = Store(tmp_path / "settings.sqlite", Fernet.generate_key().decode())
+    provider = LocalDevelopmentProvider("alice", "test-password")
+    app = server.create_app(provider, store)
+    return app, store
 
 
-def test_health_is_open():
-    r = _client().get("/api/health")
-    assert r.status_code == 200
-    assert r.json() == {"ok": True}
+def client(app):
+    return TestClient(app, base_url="http://127.0.0.1")
 
 
-def test_api_requires_session_token():
-    assert _client().get("/api/hello").status_code == 401
-
-
-def test_api_accepts_the_session_token():
-    c = _client()
-    r = c.get("/api/hello", headers={"x-session-token": server.SESSION_TOKEN})
-    assert r.status_code == 200
-    assert "message" in r.json()
-
-
-def test_host_header_is_restricted():
-    assert _client().get("/api/health", headers={"host": "evil.example"}).status_code == 400
-
-
-def test_cleanup_requires_account_bound_one_time_preview(monkeypatch):
-    account = "one@example.com"
-    other = "two@example.com"
-    result = service.Preview(account, {"inbox": ("a",)}, {"inbox": "in:inbox older_than:6m"})
-    calls = []
-    monkeypatch.setattr(service, "connect", lambda account, **kwargs: account)
-    monkeypatch.setattr(service, "preview", lambda client, selected, boxes: result)
-    monkeypatch.setattr(
-        service, "move_to_trash", lambda client, preview: calls.append(preview) or 1
+def login(c):
+    result = c.post(
+        "/api/login",
+        headers={"x-bootstrap-token": server.BOOTSTRAP_TOKEN},
+        json={"username": "alice", "password": "test-password"},
     )
-    c = _client()
-    headers = {"x-session-token": server.SESSION_TOKEN}
-    request = {"account": account, "mailboxes": [{"name": "inbox", "months": 6}]}
-    assert c.post("/api/preview", json=request).status_code == 401
-    response = c.post("/api/preview", headers=headers, json=request)
-    assert response.status_code == 200
-    preview_id = response.json()["preview_id"]
-    wrong = c.post(
-        "/api/cleanup", headers=headers, json={"account": other, "preview_id": preview_id}
-    )
-    assert wrong.status_code == 400
-    assert calls == []
-    response = c.post("/api/preview", headers=headers, json=request)
-    preview_id = response.json()["preview_id"]
-    cleanup = {"account": account, "preview_id": preview_id}
-    assert c.post("/api/cleanup", headers=headers, json=cleanup).json()["moved"] == 1
-    assert c.post("/api/cleanup", headers=headers, json=cleanup).status_code == 400
-    assert calls == [result]
+    assert result.status_code == 200
+    return {"x-csrf-token": result.json()["csrf"]}
 
 
-def test_ui_uses_keychain_not_injected_credentials(monkeypatch):
-    called = []
-    monkeypatch.setattr(
-        service, "connect", lambda account, **kwargs: called.append((account, kwargs))
-    )
-    response = _client().post(
-        "/api/test-connection",
-        headers={"x-session-token": server.SESSION_TOKEN},
-        json={"account": "one@example.com"},
-    )
-    assert response.status_code == 200
-    assert called == [("one@example.com", {"allow_injected": False})]
+def test_login_logout_csrf_and_host_restriction(application):
+    app, _ = application
+    c = client(app)
+    assert c.get("/api/health").json() == {"ok": True}
+    assert c.get("/api/health", headers={"host": "evil.example"}).status_code == 400
+    assert c.get("/api/accounts").status_code == 401
+    assert c.post("/api/login", json={"username": "alice", "password": "bad"}).status_code == 403
+    assert c.post(
+        "/api/login", headers={"x-bootstrap-token": server.BOOTSTRAP_TOKEN},
+        json={"username": "alice", "password": "bad"},
+    ).status_code == 401
+    headers = login(c)
+    assert c.get("/api/session").json()["user"] == "alice"
+    assert c.post("/api/settings/theme", json={"theme": "dark"}).status_code == 403
+    assert c.post("/api/settings/theme", headers=headers, json={"theme": "dark"}).status_code == 200
+    assert c.post("/api/logout", headers=headers).status_code == 200
+    assert c.get("/api/session").status_code == 401
 
 
-def test_invalid_credentials_request_does_not_echo_secret():
-    secret = "test-client-secret"
-    response = _client().post(
-        "/api/config",
-        headers={"x-session-token": server.SESSION_TOKEN},
-        json={"path": "/test", "value": secret},
-    )
-    assert response.status_code == 422
-    assert secret not in response.text
+def test_settings_persist_and_account_data_is_user_scoped(application):
+    app, store = application
+    alice = Identity("local-development", "alice", "alice")
+    bob = Identity("local-development", "bob", "bob")
+    store.save_account(alice, "a@example.com", '{"refresh_token":"fake"}')
+    store.save_account(bob, "b@example.com", '{"refresh_token":"fake"}')
+    c = client(app)
+    headers = login(c)
+    assert c.get("/api/accounts").json()["accounts"] == ["a@example.com"]
+    assert c.post(
+        "/api/accounts/remove", headers=headers, json={"account": "b@example.com"}
+    ).status_code != 200
+    assert store.list_accounts(bob) == ["b@example.com"]
+    assert c.post("/api/settings/theme", headers=headers, json={"theme": "dark"}).status_code == 200
+    assert c.get("/api/settings").json()["theme"] == "dark"
+    assert c.post("/api/logout", headers=headers).status_code == 200
+    login(c)
+    assert c.get("/api/settings").json()["theme"] == "dark"
 
 
-def test_configuration_status_never_returns_client_secret(monkeypatch):
-    secret = "test-client-secret"
-    monkeypatch.setattr(
-        service, "setting", lambda name: secret if name == "GMAIL_CLIENT_CONFIG_JSON" else None
-    )
-    response = _client().get(
-        "/api/config", headers={"x-session-token": server.SESSION_TOKEN}
-    )
-    assert response.json() == {"source": "environment or .env value", "path": None}
-    assert secret not in response.text
-
-
-def test_preview_is_expired_after_fifteen_minutes(monkeypatch):
-    account = "one@example.com"
-    result = service.Preview(account, {"inbox": ("a",)}, {"inbox": "query"})
-    monkeypatch.setattr(service, "connect", lambda account, **kwargs: account)
+def test_cleanup_preview_is_bound_to_login_session(application, monkeypatch):
+    app, store = application
+    user = Identity("local-development", "alice", "alice")
+    info = {"token": "fake", "refresh_token": "fake", "token_uri": "https://example.com",
+            "client_id": "fake", "client_secret": "fake"}
+    store.save_account(user, "a@example.com", json.dumps(info))
+    result = service.Preview("a@example.com", {"inbox": ("a",)}, {"inbox": "query"})
+    monkeypatch.setattr(service, "gmail_client", lambda credentials: Mock())
+    monkeypatch.setattr(service, "profile", lambda client: "a@example.com")
     monkeypatch.setattr(service, "preview", lambda *args: result)
-    monkeypatch.setattr(server.time, "monotonic", lambda: 10.0)
-    client = _client()
-    headers = {"x-session-token": server.SESSION_TOKEN}
-    response = client.post(
+    moved = Mock(return_value=1)
+    monkeypatch.setattr(service, "move_to_trash", moved)
+    first, second = client(app), client(app)
+    headers, other_headers = login(first), login(second)
+    preview = first.post(
         "/api/preview", headers=headers,
-        json={"account": account, "mailboxes": [{"name": "inbox", "months": 6}]},
-    )
-    monkeypatch.setattr(server.time, "monotonic", lambda: 911.0)
-    response = client.post(
+        json={"account": "a@example.com", "mailboxes": [{"name": "inbox", "months": 6}]},
+    ).json()
+    request = {"account": "a@example.com", "preview_id": preview["preview_id"]}
+    assert second.post("/api/cleanup", headers=other_headers, json=request).status_code == 400
+    wrong = {"account": "other@example.com", "preview_id": preview["preview_id"]}
+    assert first.post("/api/cleanup", headers=headers, json=wrong).status_code == 400
+    preview = first.post(
+        "/api/preview", headers=headers,
+        json={"account": "a@example.com", "mailboxes": [{"name": "inbox", "months": 6}]},
+    ).json()
+    request["preview_id"] = preview["preview_id"]
+    assert first.post("/api/cleanup", headers=headers, json=request).json()["moved"] == 1
+    assert first.post("/api/cleanup", headers=headers, json=request).status_code == 400
+    moved.assert_called_once()
+
+
+def test_google_oauth_state_and_session_are_required(application, monkeypatch):
+    app, store = application
+    flow = Mock()
+    flow.code_verifier = "verifier"
+    flow.authorization_url.return_value = ("https://accounts.google.com/test", "state")
+    flow.credentials.refresh_token = "fake"
+    flow.credentials.to_json.return_value = '{"refresh_token":"fake"}'
+    monkeypatch.setattr(server.web_oauth, "new_flow", lambda *args, **kwargs: flow)
+    monkeypatch.setattr(service, "gmail_client", lambda credentials: Mock())
+    monkeypatch.setattr(service, "profile", lambda client: "a@example.com")
+    c = client(app)
+    headers = login(c)
+    assert c.post("/api/accounts/connect", headers=headers).status_code == 200
+    assert c.get("/oauth/google/callback?state=wrong&code=x").status_code == 400
+    assert store.list_accounts(Identity("local-development", "alice", "alice")) == []
+    c.post("/api/accounts/connect", headers=headers)
+    response = c.get("/oauth/google/callback?state=state&code=x", follow_redirects=False)
+    assert response.status_code == 303
+    assert store.list_accounts(Identity("local-development", "alice", "alice")) == ["a@example.com"]
+    assert c.get("/oauth/google/callback?state=state&code=x").status_code == 400
+
+
+def test_preview_expiration(application, monkeypatch):
+    app, store = application
+    user = Identity("local-development", "alice", "alice")
+    info = {"token": "fake", "refresh_token": "fake", "token_uri": "https://example.com",
+            "client_id": "fake", "client_secret": "fake"}
+    store.save_account(user, "a@example.com", json.dumps(info))
+    result = service.Preview("a@example.com", {"inbox": ("a",)}, {"inbox": "query"})
+    monkeypatch.setattr(service, "gmail_client", lambda credentials: Mock())
+    monkeypatch.setattr(service, "profile", lambda client: "a@example.com")
+    monkeypatch.setattr(service, "preview", lambda *args: result)
+    moved = Mock()
+    monkeypatch.setattr(service, "move_to_trash", moved)
+    c = client(app)
+    headers = login(c)
+    preview = c.post(
+        "/api/preview", headers=headers,
+        json={"account": "a@example.com", "mailboxes": [{"name": "inbox", "months": 6}]},
+    ).json()
+    monkeypatch.setattr(server, "PREVIEW_SECONDS", 0)
+    assert c.post(
         "/api/cleanup", headers=headers,
-        json={"account": account, "preview_id": response.json()["preview_id"]},
+        json={"account": "a@example.com", "preview_id": preview["preview_id"]},
+    ).status_code == 400
+    moved.assert_not_called()
+
+
+def test_google_oauth_expiration(application, monkeypatch):
+    app, store = application
+    flow = Mock()
+    flow.code_verifier = "verifier"
+    flow.authorization_url.return_value = ("https://accounts.google.com/test", "state")
+    monkeypatch.setattr(server.web_oauth, "new_flow", lambda *args, **kwargs: flow)
+    c = client(app)
+    headers = login(c)
+    c.post("/api/accounts/connect", headers=headers)
+    monkeypatch.setattr(server, "OAUTH_SECONDS", 0)
+    assert c.get("/oauth/google/callback?state=state&code=x").status_code == 400
+    flow.fetch_token.assert_not_called()
+    assert store.list_accounts(Identity("local-development", "alice", "alice")) == []
+
+
+def test_session_rotation_and_expiry(application, monkeypatch):
+    app, _ = application
+    c = client(app)
+    login(c)
+    previous_cookie = c.cookies.get(server.SESSION_COOKIE)
+    login(c)
+    previous = client(app)
+    previous.cookies.set(server.SESSION_COOKIE, previous_cookie)
+    assert previous.get("/api/session").status_code == 401
+    monkeypatch.setattr(server, "SESSION_SECONDS", 0)
+    login(c)
+    assert c.get("/api/session").status_code == 401
+
+
+def test_account_preferences_are_validated_and_scoped(application):
+    app, store = application
+    alice = Identity("local-development", "alice", "alice")
+    bob = Identity("local-development", "bob", "bob")
+    store.save_account(alice, "a@example.com", '{"refresh_token":"fake"}')
+    store.save_account(bob, "b@example.com", '{"refresh_token":"fake"}')
+    c = client(app)
+    headers = login(c)
+    preferences = {
+        "account": "a@example.com",
+        "inbox": {"selected": True, "months": 6, "before": None},
+        "archive": {"selected": False, "months": 3, "before": "2025-01-01"},
+    }
+    assert c.post("/api/settings/account", headers=headers, json=preferences).status_code == 200
+    assert c.get("/api/settings").json()["accounts"]["a@example.com"] == {
+        key: preferences[key] for key in ("inbox", "archive")
+    }
+    preferences["account"] = "b@example.com"
+    assert c.post("/api/settings/account", headers=headers, json=preferences).status_code == 400
+    assert store.get(bob, "account:b@example.com", None) is None
+    preferences["account"] = "a@example.com"
+    preferences["inbox"]["months"] = 0
+    assert c.post("/api/settings/account", headers=headers, json=preferences).status_code == 422
+
+
+def test_google_oauth_cancellation_missing_code_and_missing_refresh(application, monkeypatch):
+    app, store = application
+    flow = Mock()
+    flow.code_verifier = "verifier"
+    flow.authorization_url.return_value = ("https://accounts.google.com/test", "state")
+    flow.credentials.refresh_token = None
+    monkeypatch.setattr(server.web_oauth, "new_flow", lambda *args, **kwargs: flow)
+    c = client(app)
+    headers = login(c)
+    c.post("/api/accounts/connect", headers=headers)
+    response = c.get(
+        "/oauth/google/callback?state=state&error=access_denied", follow_redirects=False
     )
+    assert response.status_code == 303
+    assert response.headers["location"] == "/?google=denied"
+    c.post("/api/accounts/connect", headers=headers)
+    assert c.get("/oauth/google/callback?state=state").status_code == 400
+    c.post("/api/accounts/connect", headers=headers)
+    response = c.get("/oauth/google/callback?state=state&code=secret-code")
     assert response.status_code == 400
-    assert "expired" in response.json()["detail"]
+    assert "secret-code" not in response.text
+    assert store.list_accounts(Identity("local-development", "alice", "alice")) == []

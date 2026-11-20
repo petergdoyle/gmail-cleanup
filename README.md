@@ -18,7 +18,46 @@ distributable wheel, run `make web` before `uv build`; install the resulting
 wheel with `uv tool install dist/gmail_cleanup-0.1.0-py3-none-any.whl`. The
 generated UI is not committed, so a direct source checkout must build it first.
 
-## Gmail setup
+## Local web UI setup
+
+The web UI currently runs **only on localhost** and supports one configured
+development user. Its login is separate from Google account authorization.
+The local provider is not suitable for network exposure or production;
+Authentik and shared multi-user deployment are not implemented.
+
+1. Copy `.env.example` to `.env` in the directory from which you run the app.
+   Set `GMAIL_AUTH_PROVIDER=local`, `GMAIL_DEV_USERNAME` and
+   `GMAIL_DEV_PASSWORD` to your chosen development credentials. Protect the file
+   with `chmod 600 .env`; never commit it. Environment variables override `.env`.
+2. Generate an encryption key **once**, after creating `.env`:
+
+   ```bash
+   uv run python -c 'from cryptography.fernet import Fernet; from dotenv import set_key; set_key(".env", "GMAIL_ENCRYPTION_KEY", Fernet.generate_key().decode())'
+   ```
+
+   The command writes the key to `.env` without displaying it. Keep a secure
+   backup separate from the database: losing or replacing this key makes saved
+   Google credentials unreadable.
+3. In Google Cloud, enable the Gmail API, configure the OAuth consent screen
+   and permitted test users, and create an **OAuth client ID for a web
+   application**. Add the exact redirect URI
+   `http://127.0.0.1:8100/oauth/google/callback` for the default `make ui` or
+   `make dev-up` address. If you use another host or port, register its exact
+   callback URI instead. Download the client JSON to a private location and set
+   `GMAIL_WEB_CREDENTIALS_PATH` to its path in `.env`.
+4. Run `make ui` or `make dev-up`, sign in with the development credentials,
+   then open **Settings → Connect Google account**. Authorize each account
+   separately on Google. Select an account on the Cleanup screen and use
+   **Settings → Test selected account** to verify its connection.
+
+Each user identity has separate account and settings records in the ignored
+`.run/settings.sqlite` file in the launch directory. Google credentials are
+encrypted using `GMAIL_ENCRYPTION_KEY`; SQLite settings are not encrypted.
+Removing an account removes its saved local credentials and preferences; it does
+not revoke Google's authorization, which can be managed in the Google account.
+The encryption key and Google client file must remain outside Git.
+
+## CLI Gmail setup
 
 1. In Google Cloud, enable the Gmail API, configure the OAuth consent screen,
    and create an **OAuth client ID for a desktop application**. Download its
@@ -29,15 +68,11 @@ generated UI is not committed, so a direct source checkout must build it first.
    or supply the client JSON as `GMAIL_CLIENT_CONFIG_JSON`. Environment variables
    take precedence over `.env`. Never commit credentials or `.env`.
 3. Run `uv run gmail auth` for each account and choose the Google account in
-   the browser, or use **Admin → Add account** in the UI. Each account must
-   grant the Gmail modify permission separately. The app stores web-authorized
-   account credentials in macOS Keychain.
+   the browser. Each account must grant the Gmail modify permission separately.
+   The CLI stores its authorized account credentials in macOS Keychain; these
+   accounts are separate from web UI accounts.
 4. Run `uv run gmail accounts` to list accounts and
    `uv run gmail test-connection --account you@example.com` to test one.
-   In the UI, select an account and use **Admin → Test connection**.
-
-The Admin client path or JSON override is kept in memory for the current UI
-session. The client JSON is never displayed after it is applied.
 
 ## Cleanup
 
@@ -86,14 +121,17 @@ authenticated Gmail address against `--account` before touching mail.
 
 ```bash
 make web         # build the UI after editing web-src
-make dev-up      # build the UI and start on http://127.0.0.1:8100
+make dev-up      # build, start on http://127.0.0.1:8100, and open a browser
 make dev-status  # check the managed process and health endpoint
 make dev-down    # stop only the managed process
 ```
 
 Logs and process metadata are under the ignored `.run/` directory. The UI is
 for local use only; Docker/Proxmox deployment and remote authentication are not
-implemented.
+implemented. If the browser does not open automatically, visit
+http://127.0.0.1:8100 manually. Re-running `make dev-up` opens the already
+running managed UI. npm's version-pinned install-script approvals in
+`web-src/package.json` must be reviewed when those dependencies change.
 
 ## Development
 

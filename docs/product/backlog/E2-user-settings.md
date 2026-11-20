@@ -5,11 +5,16 @@
 **Epic:** Provide each authenticated user with durable, isolated account,
 cleanup and appearance settings, plus access to help and documentation.
 
-This is a future epic, not an implementation decision. Plan and implement it
-after the shared deployment and identity model has been discussed and decided
-([D04](./design-decision-log.md)). Its Settings surface replaces the current
-local Admin surface. The supplied UI example informs the user's visible login,
-settings and Help & Docs navigation; **View as** is out of scope.
+The next local-development effort implements pluggable application login with
+an explicitly local-only development provider (Authentik/OIDC is deferred),
+separate Google authorization and persistent per-user settings. Use SQLite for
+per-user records and an operator-supplied key for encrypted Google refresh
+tokens. The operator configures the shared Google OAuth client; users connect
+their own Google accounts. Implementation details and shared deployment remain
+subject to design and review ([D04](./design-decision-log.md)); no shared-server
+deployment is implied. Settings replaces the current local Admin surface. The
+supplied UI example informs the visible login, Settings and Help & Docs
+navigation; **View as** is out of scope.
 
 ## Features
 
@@ -47,7 +52,8 @@ settings and Help & Docs navigation; **View as** is out of scope.
 
 ## Done When
 
-- [ ] Shared deployment and identity decisions are made before implementation.
+- [ ] Local identity and persistence decisions are made before implementation;
+  shared deployment remains a separate decision.
 - [ ] User settings and connected accounts persist and are isolated per user.
 - [ ] Cleanup still requires a user-visible preview and confirmation.
 - [ ] Theme, signed-in identity, sign-out, Settings and Help & Docs work as agreed.

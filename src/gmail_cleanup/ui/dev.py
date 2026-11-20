@@ -11,6 +11,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+import webbrowser
 from pathlib import Path
 
 RUN_DIR = Path.cwd() / ".run"
@@ -53,12 +54,23 @@ def responsive() -> bool:
         return False
 
 
+def open_browser() -> None:
+    try:
+        opened = webbrowser.open(URL)
+    except webbrowser.Error as exc:
+        print(f"Could not open a browser: {exc}. Open {URL} manually.")
+        return
+    if not opened:
+        print(f"Could not open a browser. Open {URL} manually.")
+
+
 def start() -> None:
     current = managed_process()
     if current:
         if not responsive():
             raise SystemExit(f"Managed process {current[0]} is not responding at {URL}.")
         print(f"Development UI already running at {URL} (PID {current[0]}).")
+        open_browser()
         return
     if responsive():
         raise SystemExit(f"A service already responds at {URL}; it was not started by this tool.")
@@ -77,6 +89,7 @@ def start() -> None:
             raise SystemExit("Development UI exited during startup; see .run/gmail-ui.log.")
         if responsive():
             print(f"Development UI running at {URL} (PID {process.pid}).")
+            open_browser()
             return
         time.sleep(0.1)
     raise SystemExit("Development UI is not ready; check .run/gmail-ui.log and dev-status.")
